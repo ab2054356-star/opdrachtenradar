@@ -127,7 +127,7 @@ const server = http.createServer(async (req, res) => {
       const ip = ipVan(req);
       if (auth.geblokkeerd(ip)) return stuurJson(res, 429, { fout: "te veel pogingen" });
       const b = await leesBody(req);
-      const naam = typeof b.gebruiker === "string" ? b.gebruiker.slice(0, 64) : "";
+      const naam = typeof b.gebruiker === "string" ? b.gebruiker.trim().toLowerCase().slice(0, 64) : "";
       const ww = typeof b.wachtwoord === "string" ? b.wachtwoord.slice(0, 200) : "";
       if (!naam || !ww || !auth.wachtwoordKlopt(naam, ww)) {
         auth.noteerMislukt(ip);

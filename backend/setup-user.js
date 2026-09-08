@@ -11,7 +11,7 @@
 const readline = require("node:readline");
 const auth = require("./lib/auth");
 
-const naam = process.argv[2];
+const naam = (process.argv[2] || "").trim().toLowerCase();
 if (!naam || !/^[A-Za-z0-9_.-]{2,64}$/.test(naam)) {
   console.log("Gebruik: node backend/setup-user.js <naam>   (letters, cijfers, . _ -)");
   process.exit(1);
