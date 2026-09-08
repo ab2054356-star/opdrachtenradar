@@ -1,0 +1,14 @@
+# database en alles wat persoonlijk is
+backend/data/
+*.db
+*.sqlite
+
+# niet nodig, dit project heeft geen dependencies
+node_modules/
+package-lock.json
+
+# rommel
+.DS_Store
+Thumbs.db
+*.log
+.vscode/

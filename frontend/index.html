@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opdrachtenradar Aventus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="loginscherm" class="loginwrap" hidden>
+  <form class="logincard" id="loginform" autocomplete="on">
+    <h1 id="login-titel">Opdrachtenradar</h1>
+    <p class="sub" id="login-sub"></p>
+    <label for="login-gebruiker" id="lb-gebruiker"></label>
+    <input type="text" id="login-gebruiker" name="username" autocomplete="username" required>
+    <label for="login-wachtwoord" id="lb-wachtwoord"></label>
+    <input type="password" id="login-wachtwoord" name="password" autocomplete="current-password" required>
+    <button type="submit" class="btn primary" id="login-knop"></button>
+    <p class="note" id="login-fout"></p>
+  </form>
+</div>
+<div id="app" hidden>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow" id="eyebrow">ICT N3+N4 · klas C · 2026-2027</span>
+      <h1 id="title">Opdrachtenradar</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div class="controls">
+      <span class="sync"><span class="dot" id="syncdot"></span><span id="syncmsg">…</span></span>
+      <button type="button" class="btn ghost" id="btn-uit"></button>
+      <div class="seg" role="group" aria-label="taal">
+        <button type="button" id="lang-nl" aria-pressed="false">NL</button>
+        <button type="button" id="lang-ar" aria-pressed="true">ع</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat is-late"><span class="n" id="s-late">0</span><span class="l" id="l-late"></span></div>
+    <div class="stat is-soon"><span class="n" id="s-week">0</span><span class="l" id="l-week"></span></div>
+    <div class="stat"><span class="n" id="s-open">0</span><span class="l" id="l-open"></span></div>
+    <div class="stat is-done"><span class="n" id="s-done">0</span><span class="l" id="l-done"></span></div>
+  </div>
+  <div class="bar"><i id="progbar" style="width:0%"></i></div>
+  <div class="barlab"><span id="proglab">0%</span><span id="progsub"></span></div>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-opdrachten" aria-selected="true"></button>
+    <button type="button" role="tab" id="tab-rooster" aria-selected="false"></button>
+    <button type="button" role="tab" id="tab-spec" aria-selected="false"></button>
+    <button type="button" role="tab" id="tab-rapport" aria-selected="false"></button>
+    <button type="button" role="tab" id="tab-import" aria-selected="false"></button>
+  </nav>
+
+  <!-- ============ OPDRACHTEN ============ -->
+  <section class="panel" id="panel-opdrachten">
+    <div class="filters">
+      <select id="f-vak"></select>
+      <select id="f-status"></select>
+      <input type="text" id="f-zoek" placeholder="…">
+      <select id="f-sort"></select>
+      <span class="spacer"></span>
+      <button type="button" class="btn primary" id="btn-new"></button>
+    </div>
+
+    <div class="card" id="formcard" hidden>
+      <div class="formgrid">
+        <div class="f"><label id="lb-titel"></label><input type="text" id="i-titel"></div>
+        <div class="f"><label id="lb-vak"></label><input type="text" id="i-vak" list="vakken"></div>
+        <div class="f"><label id="lb-code"></label><input type="text" id="i-code" placeholder="LAB-001N"></div>
+        <div class="f"><label id="lb-deadline"></label><input type="date" id="i-deadline">
+          <div class="quick"><button type="button" class="chip" data-q="1" id="q1"></button><button type="button" class="chip" data-q="7" id="q7"></button><button type="button" class="chip" data-q="14" id="q14"></button><button type="button" class="chip" id="qp"></button></div>
+        </div>
+        <div class="f"><label id="lb-periode"></label><input type="text" id="i-periode" placeholder="P1"></div>
+        <div class="f"><label id="lb-status"></label><select id="i-status"></select></div>
+      </div>
+      <datalist id="vakken"></datalist>
+      <div class="formfoot">
+        <button type="button" class="btn primary" id="btn-save"></button>
+        <button type="button" class="btn" id="btn-cancel"></button>
+        <span class="note" id="formerr"></span>
+      </div>
+    </div>
+
+    <div id="lijst"></div>
+  </section>
+
+  <!-- ============ ROOSTER ============ -->
+  <section class="panel" id="panel-rooster" hidden>
+    <p class="specintro" id="roosterintro"></p>
+    <div class="block">
+      <h3 id="roostertitel"></h3>
+      <div id="roosterlijst" class="rooster"></div>
+      <div class="formfoot"><input type="text" id="i-nieuwvak" placeholder=""><button type="button" class="btn" id="btn-vak"></button></div>
+    </div>
+    <div class="block">
+      <h3 id="periodetitel"></h3>
+      <p class="why" id="periodehint"></p>
+      <div id="periodelijst" class="rooster"></div>
+    </div>
+  </section>
+
+  <!-- ============ SPECIALISATIE ============ -->
+  <section class="panel" id="panel-spec" hidden>
+    <p class="specintro" id="specintro"></p>
+    <div id="specblocks"></div>
+  </section>
+
+  <!-- ============ RAPPORT ============ -->
+  <section class="panel" id="panel-rapport" hidden>
+    <p class="specintro" id="rapportintro"></p>
+    <div class="formfoot" style="margin:0 0 16px"><button type="button" class="btn primary" id="btn-rapport"></button><span class="note" id="rapportmsg"></span></div>
+    <div id="rapportview"></div>
+  </section>
+
+  <!-- ============ IMPORT ============ -->
+  <section class="panel" id="panel-import" hidden>
+    <div class="hint-box" id="importhint"></div>
+    <textarea id="importbox" spellcheck="false"></textarea>
+    <div class="formfoot">
+      <button type="button" class="btn primary" id="btn-import"></button>
+      <span class="note" id="importmsg"></span>
+    </div>
+  </section>
+</div>
+
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
