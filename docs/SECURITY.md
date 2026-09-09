@@ -82,6 +82,11 @@ Eerlijk blijven over wat open staat, hoort erbij:
   het wachtwoord in platte tekst over het netwerk. Eerste taak bij het uitrollen.
 - **Sessies staan in het geheugen.** Server herstart = iedereen eruit. Voor één
   gebruiker prima, maar het is geen echte oplossing.
+- **De sessie duurt 30 dagen.** Bewuste keuze: het draait op mijn eigen pc en ik
+  wil niet elke dag opnieuw inloggen. De prijs is dat wie fysiek achter mijn
+  laptop kruipt binnen is zonder wachtwoord. Voor een systeem met meer
+  gebruikers, of zodra het buiten mijn eigen machine draait, gaat dit terug naar
+  uren in plaats van dagen.
 - **Geen logbestand.** Ik zie mislukte pogingen alleen in de console. Voor een
   SOC-achtige analyse wil je die wegschrijven met tijd, IP en gebruikersnaam.
 - **De rate limit staat in het geheugen per IP.** Achter een NAT of proxy deelt

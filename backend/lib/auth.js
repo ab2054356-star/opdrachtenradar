@@ -16,7 +16,7 @@
 const crypto = require("node:crypto");
 const store = require("./store");
 
-const SESSIE_DUUR_MS = 8 * 60 * 60 * 1000;   // 8 uur
+const SESSIE_DUUR_MS = 30 * 24 * 60 * 60 * 1000;   // 30 dagen
 const MAX_POGINGEN = 5;                       // per IP
 const BLOKKADE_MS = 15 * 60 * 1000;           // 15 minuten
 
