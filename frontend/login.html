@@ -11,6 +11,43 @@
 </head>
 <body>
 
+<!-- Draaiende radarlaag. Bewust inline en niet in achtergrond.svg: een SVG die
+     via CSS background-image geladen wordt, voert zijn animatie niet uit in
+     Chrome. De stille laag (ringen, raster, netwerk) blijft wel een los
+     bestand, want die is groter en wordt gecachet. -->
+<svg class="radar" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="veeg" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#4FBFAC" stop-opacity=".34"/>
+      <stop offset="60%"  stop-color="#4FBFAC" stop-opacity=".07"/>
+      <stop offset="100%" stop-color="#4FBFAC" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#7BE3CD" stop-opacity=".75"/>
+      <stop offset="100%" stop-color="#7BE3CD" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="schijf2"><circle cx="352" cy="800" r="880"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#schijf2)">
+    <g class="veeg">
+      <path d="M352 800 L1223 678 A880 880 0 0 0 653 -27 Z" fill="url(#veeg)"/>
+      <path d="M352 800 L653 -27" stroke="url(#rand)" stroke-width="2.5" fill="none"/>
+    </g>
+
+    <!-- ping: een ring die elke ronde naar buiten loopt -->
+    <circle class="ping" cx="352" cy="800" r="150" fill="none" stroke="#4FBFAC" stroke-width="2"/>
+
+    <!-- blips lichten op wanneer de straal er langs komt -->
+    <g fill="#7BE3CD">
+      <circle class="blip b1" cx="596" cy="470" r="7"/>
+      <circle class="blip b2" cx="838" cy="676" r="5.5"/>
+      <circle class="blip b3" cx="470" cy="266" r="5"/>
+      <circle class="blip b4" cx="188" cy="512" r="4.5"/>
+    </g>
+  </g>
+</svg>
+
 <div class="loginwrap">
   <form class="logincard" id="loginform" autocomplete="on">
     <h1>Opdrachtenradar</h1>
