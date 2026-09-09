@@ -78,8 +78,11 @@ begrensd op 64 KB, dus je kunt de server niet volproppen met één verzoek.
 
 Eerlijk blijven over wat open staat, hoort erbij:
 
-- **Geen HTTPS.** Op `localhost` niet erg, maar zodra dit op de VM staat gaat
-  het wachtwoord in platte tekst over het netwerk. Eerste taak bij het uitrollen.
+- **Het certificaat is zelfondertekend.** TLS staat aan (zie 9), maar niemand
+  bevestigt dat 127.0.0.1 ook echt mijn server is. De browser waarschuwt daar
+  terecht voor. Versleuteling: ja. Identiteit: nee. Bij het uitrollen op de VM
+  hoort hier een certificaat van een echte CA, of een eigen CA die ik op mijn
+  machines vertrouw.
 - **Sessies staan in het geheugen.** Server herstart = iedereen eruit. Voor één
   gebruiker prima, maar het is geen echte oplossing.
 - **De sessie duurt 30 dagen.** Bewuste keuze: het draait op mijn eigen pc en ik
@@ -97,3 +100,33 @@ Eerlijk blijven over wat open staat, hoort erbij:
   `.gitignore`, dus het log komt niet in git terecht.
 - **De rate limit staat in het geheugen per IP.** Achter een NAT of proxy deelt
   een hele school hetzelfde IP.
+
+## 9. HTTPS
+
+`server.js` kijkt bij het starten of `backend/data/key.pem` en `cert.pem`
+bestaan. Zo ja, dan start hij met `https.createServer` en zet hij
+`RADAR_HTTPS=1`, waardoor de sessiecookie er `Secure` bij krijgt — die gaat dan
+nooit meer over een onversleutelde verbinding. Zo niet, dan draait hij gewoon op
+http, zodat het project ook werkt op een machine zonder certificaat.
+
+Sleutel en certificaat maken:
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+  -keyout backend/data/key.pem -out backend/data/cert.pem \
+  -subj "/CN=127.0.0.1" -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+```
+
+`key.pem` is de private sleutel en hoort **nooit** in git; `backend/data/` staat
+daarom in `.gitignore`. Een gelekte private sleutel op GitHub betekent dat
+iedereen zich als mijn server kan voordoen.
+
+**Zelf gezien, niet uit een boek.** `backend/sniff.js` is een TCP-proxy van
+zestig regels die alles toont wat er tussen browser en server langskomt. Over
+http stonden mijn wachtwoord in de login-POST en mijn `radar_sessie`-cookie bij
+elk volgend verzoek gewoon leesbaar in beeld. Met TLS ervoor blijft er niets
+over dan `16 03 01 ...` — versleutelde records. Dezelfde proxy, dezelfde plek op
+de lijn, ander resultaat.
+
+Wat dit **niet** oplost: iemand met toegang tot de machine zelf, of tot mijn
+browser. TLS beschermt de weg ertussenin, niet de uiteinden.

@@ -10,6 +10,7 @@
  * Gebruiker: node backend/setup-user.js <naam>
  */
 const http = require("node:http");
+const https = require("node:https");
 const fs = require("node:fs");
 const path = require("node:path");
 const store = require("./lib/store");
@@ -19,6 +20,23 @@ const POORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "127.0.0.1";   // alleen lokaal; 0.0.0.0 pas als je het bewust openzet
 const FRONTEND = path.join(__dirname, "..", "frontend");
 const MAX_BODY = 64 * 1024;                      // 64 KB is ruim voor een opdracht
+
+/* HTTPS. Liggen er een sleutel en een certificaat in backend/data/, dan start de
+   server met TLS; anders gewoon http. Zo blijft het project draaien op een
+   machine waar nog geen certificaat is aangemaakt.
+   Maken:  openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+             -keyout backend/data/key.pem -out backend/data/cert.pem \
+             -subj "/CN=127.0.0.1" -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+   De sleutel hoort NOOIT in git; backend/data/ staat in .gitignore. */
+const DATA_DIR = process.env.RADAR_DATA_DIR
+  ? path.resolve(process.env.RADAR_DATA_DIR)
+  : path.join(__dirname, "data");
+const SLEUTEL = path.join(DATA_DIR, "key.pem");
+const CERTIFICAAT = path.join(DATA_DIR, "cert.pem");
+const METTLS = fs.existsSync(SLEUTEL) && fs.existsSync(CERTIFICAAT);
+
+// De sessiecookie mag pas "Secure" heten als er ook echt TLS onder zit.
+if (METTLS) process.env.RADAR_HTTPS = "1";
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -123,7 +141,7 @@ function stuurBestand(res, urlPad) {
 
 /* ---------------- server ---------------- */
 
-const server = http.createServer(async (req, res) => {
+const afhandelaar = async (req, res) => {
   veiligheidsHeaders(res);
   const url = new URL(req.url, "http://" + (req.headers.host || "localhost"));
   const pad = url.pathname;
@@ -223,7 +241,11 @@ const server = http.createServer(async (req, res) => {
     console.error("[fout]", e.message);
     return stuurJson(res, 400, { fout: "verzoek kon niet verwerkt worden" });
   }
-});
+};
+
+const server = METTLS
+  ? https.createServer({ key: fs.readFileSync(SLEUTEL), cert: fs.readFileSync(CERTIFICAAT) }, afhandelaar)
+  : http.createServer(afhandelaar);
 
 if (store.aantalGebruikers() === 0) {
   console.log("\nEr is nog geen gebruiker. Maak er eerst een:\n  node backend/setup-user.js <naam>\n");
@@ -231,6 +253,9 @@ if (store.aantalGebruikers() === 0) {
 }
 
 server.listen(POORT, HOST, () => {
-  console.log("Opdrachtenradar draait op http://" + HOST + ":" + POORT);
+  console.log("Opdrachtenradar draait op " + (METTLS ? "https" : "http") + "://" + HOST + ":" + POORT);
   console.log("Opslag: " + store.motor);
+  console.log(METTLS
+    ? "TLS: aan  — de sessiecookie krijgt Secure"
+    : "TLS: uit — alles gaat leesbaar over de lijn (zie backend/sniff.js)");
 });
