@@ -65,6 +65,16 @@ document.getElementById("loginform").addEventListener("submit", function(e){
   });
 });
 
+/* Het wachtertje: poten voor de ogen zodra je in het wachtwoordveld staat. */
+(function(){
+  var ww = document.getElementById("login-wachtwoord");
+  if (!ww) return;
+  var dicht = function(){ document.body.classList.add("bedekt"); };
+  var open  = function(){ document.body.classList.remove("bedekt"); };
+  ww.addEventListener("focus", dicht);
+  ww.addEventListener("blur", open);
+})();
+
 zetTaal(lang);
 document.getElementById("login-gebruiker").focus();
 })();

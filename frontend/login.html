@@ -50,19 +50,60 @@
 
 <div class="loginwrap">
   <form class="logincard" id="loginform" autocomplete="on">
+
+    <!-- Het wachtwachtertje. Kijkt je aan, en slaat zijn poten voor zijn ogen
+         zodra je in het wachtwoordveld begint. Puur SVG + CSS; het script zet
+         alleen een klasse op de body. -->
+    <span class="wachter" aria-hidden="true">
+      <svg viewBox="0 0 140 112" width="118" height="94">
+        <!-- antenne -->
+        <line x1="70" y1="26" x2="70" y2="12" stroke="var(--m-lijn)" stroke-width="3" stroke-linecap="round"/>
+        <circle class="antenne" cx="70" cy="9" r="4.5" fill="var(--m-lijn)"/>
+        <!-- oren -->
+        <ellipse cx="44" cy="38" rx="9" ry="12" fill="var(--m-body)" transform="rotate(-20 44 38)"/>
+        <ellipse cx="96" cy="38" rx="9" ry="12" fill="var(--m-body)" transform="rotate(20 96 38)"/>
+        <!-- hoofd -->
+        <circle cx="70" cy="58" r="32" fill="var(--m-body)"/>
+        <ellipse cx="70" cy="63" rx="24" ry="21" fill="var(--m-gezicht)"/>
+        <!-- ogen -->
+        <g class="ogen">
+          <circle cx="58" cy="55" r="7.5" fill="#fff"/>
+          <circle cx="82" cy="55" r="7.5" fill="#fff"/>
+          <circle class="pupil" cx="58" cy="56" r="3.4" fill="#12312C"/>
+          <circle class="pupil" cx="82" cy="56" r="3.4" fill="#12312C"/>
+        </g>
+        <!-- snuitje -->
+        <path d="M66 70 Q70 74 74 70" stroke="#12312C" stroke-opacity=".55" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <!-- armen: hangen omlaag, zwaaien omhoog voor de ogen -->
+        <g class="arm arm-l">
+          <path d="M44 76 L31 104" stroke="var(--m-body)" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <circle cx="31" cy="104" r="8.5" fill="var(--m-hand)"/>
+        </g>
+        <g class="arm arm-r">
+          <path d="M96 76 L109 104" stroke="var(--m-body)" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <circle cx="109" cy="104" r="8.5" fill="var(--m-hand)"/>
+        </g>
+      </svg>
+    </span>
+
+    <span class="eyebrow">ICT N3+N4 · klas C</span>
     <h1>Opdrachtenradar</h1>
     <p class="sub" id="login-sub"></p>
 
-    <label for="login-gebruiker" id="lb-gebruiker"></label>
-    <input type="text" id="login-gebruiker" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <div class="veld">
+      <label for="login-gebruiker" id="lb-gebruiker"></label>
+      <input type="text" id="login-gebruiker" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    </div>
 
-    <label for="login-wachtwoord" id="lb-wachtwoord"></label>
-    <input type="password" id="login-wachtwoord" name="password" autocomplete="current-password" required>
+    <div class="veld">
+      <label for="login-wachtwoord" id="lb-wachtwoord"></label>
+      <input type="password" id="login-wachtwoord" name="password" autocomplete="current-password" required>
+    </div>
 
     <button type="submit" class="btn primary" id="login-knop"></button>
     <p class="note" id="login-fout"></p>
 
-    <div class="seg" role="group" aria-label="taal" style="margin:14px auto 0">
+    <div class="taal">
       <button type="button" id="lang-nl">NL</button>
       <button type="button" id="lang-ar">ع</button>
     </div>
