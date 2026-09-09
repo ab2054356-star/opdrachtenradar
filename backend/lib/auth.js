@@ -14,11 +14,19 @@
  *     browser kan er met JavaScript niet bij, dus XSS kan de sessie niet stelen.
  */
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
 const store = require("./store");
 
 const SESSIE_DUUR_MS = 30 * 24 * 60 * 60 * 1000;   // 30 dagen
 const MAX_POGINGEN = 5;                       // per IP
 const BLOKKADE_MS = 15 * 60 * 1000;           // 15 minuten
+// Zelfde wegwerp-map als store.js gebruikt bij het testen (RADAR_DATA_DIR),
+// zodat een testrun niet in het echte auth.log schrijft.
+const DATA_DIR = process.env.RADAR_DATA_DIR
+  ? path.resolve(process.env.RADAR_DATA_DIR)
+  : path.join(__dirname, "..", "data");
+const LOG_BESTAND = path.join(DATA_DIR, "auth.log");
 
 const sessies = new Map();   // token -> { gebruiker, verloopt }
 const pogingen = new Map();  // ip -> { aantal, tot }
@@ -62,6 +70,25 @@ function noteerMislukt(ip) {
 }
 
 function wisPogingen(ip) { pogingen.delete(ip); }
+
+/* ---------------- logboek ---------------- */
+
+/**
+ * Elke inlogpoging wegschrijven naar backend/data/auth.log.
+ * Eén regel: tijd (ISO), IP, gebruikersnaam, resultaat ("ok" | "fail" | "blocked").
+ *
+ * Bewust NIET in het log: het wachtwoord (of een stuk ervan), de cookie en het
+ * sessietoken. De gebruikersnaam wordt eerst geschoond — \r en \n eruit, daarna
+ * afgekapt op 64 tekens — zodat niemand er een nepregel in het logbestand mee
+ * kan smokkelen (log injection).
+ */
+function logLogin(ip, naam, resultaat) {
+  const schoon = String(naam == null ? "" : naam).replace(/[\r\n]+/g, " ").slice(0, 64);
+  const regel = [new Date().toISOString(), ip || "onbekend", schoon || "-", resultaat].join(" ") + "\n";
+  fs.appendFile(LOG_BESTAND, regel, (err) => {
+    if (err) console.error("[auth.log] schrijven mislukt:", err.message);
+  });
+}
 
 /* ---------------- sessies ---------------- */
 
@@ -110,7 +137,7 @@ function sessieCookie(token, verlooptMs) {
 module.exports = {
   SESSIE_DUUR_MS, MAX_POGINGEN,
   maakGebruiker, wachtwoordKlopt,
-  geblokkeerd, noteerMislukt, wisPogingen,
+  geblokkeerd, noteerMislukt, wisPogingen, logLogin,
   startSessie, sessieVan, stopSessie,
   leesCookie, sessieCookie
 };

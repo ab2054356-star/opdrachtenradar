@@ -57,12 +57,38 @@ node backend/server.js                # start op http://127.0.0.1:3000
 De database komt in `backend/data/` te staan. Die map staat in `.gitignore`:
 mijn opdrachten en mijn wachtwoord-hash horen niet in een publieke repo.
 
+## Testen
+
+```bash
+node backend/test-security.js
+```
+
+Geen testframework — alleen `node:child_process` en de ingebouwde `fetch`. Het
+script start de server op een eigen poort (3999) met een **wegwerp-database en
+wegwerp-gebruiker** in de tijdelijke map van het systeem, draait de tests, en
+ruimt daarna alles op. Je eigen data, wachtwoord-hash en `auth.log` blijven
+ongemoeid. Elke test print `PASS` of `FAIL`; de exitcode is `0` als alles slaagt
+en `1` zodra er iets faalt (handig voor CI).
+
+Wat het controleert:
+
+1. `GET /api/state` zonder cookie geeft `401`
+2. Inloggen met een fout wachtwoord geeft `401`
+3. Zes foute pogingen achter elkaar: de zesde wordt geblokkeerd met `429`
+4. Een juiste login geeft `200` met een `Set-Cookie` die `HttpOnly` en
+   `SameSite=Strict` bevat
+5. Een opdracht met `link=javascript:alert(1)` wordt opgeslagen met een lege link
+6. Een onbekend veld in een opdracht wordt niet opgeslagen
+7. Het pad `/../backend/data/radar.db` (en `%2e`/`%2f`-varianten) geeft geen `200`
+8. Een opdracht met `cijfer=99` wordt opgeslagen met een leeg cijfer
+
 ## Mappen
 
 ```
 backend/
   server.js         HTTP-server, routes, validatie, veiligheidsheaders
   setup-user.js     gebruiker aanmaken (wachtwoord typ je zelf)
+  test-security.js  automatische beveiligingstest (wegwerp-database)
   lib/store.js      opslag: SQLite of JSON
   lib/auth.js       hashen, sessies, brute force afremmen
   data/             database (niet in git)

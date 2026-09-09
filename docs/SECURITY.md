@@ -87,7 +87,13 @@ Eerlijk blijven over wat open staat, hoort erbij:
   laptop kruipt binnen is zonder wachtwoord. Voor een systeem met meer
   gebruikers, of zodra het buiten mijn eigen machine draait, gaat dit terug naar
   uren in plaats van dagen.
-- **Geen logbestand.** Ik zie mislukte pogingen alleen in de console. Voor een
-  SOC-achtige analyse wil je die wegschrijven met tijd, IP en gebruikersnaam.
+- **Het logbestand is alleen lokaal.** Elke inlogpoging gaat nu naar
+  `backend/data/auth.log` (`lib/auth.js`, `logLogin()`), één regel per poging:
+  tijd in ISO, IP, geschoonde gebruikersnaam (max 64 tekens, `\r` en `\n`
+  verwijderd tegen log injection) en het resultaat `ok`, `fail` of `blocked`.
+  Bewust **niet** in het log: het wachtwoord of een deel ervan, de cookie en het
+  sessietoken. Wat nog ontbreekt: doorsturen naar een centrale plek of SIEM, en
+  rotatie zodat het bestand niet eindeloos groeit. `backend/data/` staat in
+  `.gitignore`, dus het log komt niet in git terecht.
 - **De rate limit staat in het geheugen per IP.** Achter een NAT of proxy deelt
   een hele school hetzelfde IP.

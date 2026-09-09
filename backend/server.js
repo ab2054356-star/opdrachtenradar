@@ -134,15 +134,20 @@ const server = http.createServer(async (req, res) => {
     /* --- inloggen --- */
     if (pad === "/api/login" && req.method === "POST") {
       const ip = ipVan(req);
-      if (auth.geblokkeerd(ip)) return stuurJson(res, 429, { fout: "te veel pogingen" });
       const b = await leesBody(req);
       const naam = typeof b.gebruiker === "string" ? b.gebruiker.trim().toLowerCase().slice(0, 64) : "";
       const ww = typeof b.wachtwoord === "string" ? b.wachtwoord.slice(0, 200) : "";
+      if (auth.geblokkeerd(ip)) {
+        auth.logLogin(ip, naam, "blocked");
+        return stuurJson(res, 429, { fout: "te veel pogingen" });
+      }
       if (!naam || !ww || !auth.wachtwoordKlopt(naam, ww)) {
         auth.noteerMislukt(ip);
+        auth.logLogin(ip, naam, "fail");
         return stuurJson(res, 401, { fout: "onjuist" });   // niet verklappen wát er fout was
       }
       auth.wisPogingen(ip);
+      auth.logLogin(ip, naam, "ok");
       const t = auth.startSessie(naam);
       res.setHeader("Set-Cookie", auth.sessieCookie(t, auth.SESSIE_DUUR_MS));
       return stuurJson(res, 200, { gebruiker: naam });

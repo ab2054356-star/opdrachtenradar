@@ -13,7 +13,12 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
+// Standaard backend/data/. Met RADAR_DATA_DIR wijs je dit ergens anders heen —
+// zo draait backend/test-security.js op een wegwerp-database zonder je echte
+// data of wachtwoord-hash aan te raken.
+const DATA_DIR = process.env.RADAR_DATA_DIR
+  ? path.resolve(process.env.RADAR_DATA_DIR)
+  : path.join(__dirname, "..", "data");
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 let db = null;          // SQLite-verbinding, of null
