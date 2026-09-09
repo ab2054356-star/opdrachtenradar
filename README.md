@@ -54,6 +54,16 @@ node backend/setup-user.js ashraf     # eenmalig: gebruiker + wachtwoord
 node backend/server.js                # start op http://127.0.0.1:3000
 ```
 
+Op Windows kan het ook met een dubbelklik op **`start.cmd`** in de projectmap.
+Wil je dat de server meestart met Windows: maak een snelkoppeling naar
+`start.cmd` en zet die in de map die je krijgt via `Windows + R` →
+`shell:startup`. Weghalen doe je door de snelkoppeling daar te verwijderen.
+
+> Bewust opgeschreven, want een dienst die vanzelf start is een dienst die je
+> vergeet. Zolang `HOST` op `127.0.0.1` staat luistert hij alleen op deze
+> machine. Zet ik dat ooit op `0.0.0.0`, dan staat er dankzij die snelkoppeling
+> een server open op het netwerk zonder dat ik eraan denk.
+
 De database komt in `backend/data/` te staan. Die map staat in `.gitignore`:
 mijn opdrachten en mijn wachtwoord-hash horen niet in een publieke repo.
 
@@ -85,17 +95,20 @@ Wat het controleert:
 ## Mappen
 
 ```
+start.cmd           dubbelklikken om de server te starten (Windows)
 backend/
-  server.js         HTTP-server, routes, validatie, veiligheidsheaders
+  server.js         HTTP/HTTPS-server, routes, validatie, veiligheidsheaders
   setup-user.js     gebruiker aanmaken (wachtwoord typ je zelf)
   test-security.js  automatische beveiligingstest (wegwerp-database)
   lib/store.js      opslag: SQLite of JSON
   lib/auth.js       hashen, sessies, brute force afremmen
   data/             database (niet in git)
 frontend/
-  index.html        inlogscherm + applicatie
-  style.css         opmaak, licht en donker thema
+  index.html        de applicatie zelf
   app.js            alle logica in de browser
+  login.html        inlogpagina, laadt app.js bewust niet
+  login.js          het inlogscript (apart bestand: de CSP staat geen inline script toe)
+  style.css         opmaak, licht en donker thema
 docs/
   SECURITY.md       welke aanvallen zijn afgedekt en hoe
   API.md            beschrijving van de endpoints
@@ -104,7 +117,7 @@ docs/
 ## Volgende stappen
 
 - [ ] Uitrollen op een Windows Server-VM in VMware (Server en Cloud)
-- [ ] HTTPS met een eigen certificaat, en `Secure` op de sessiecookie
+- [x] HTTPS met een eigen certificaat, en `Secure` op de sessiecookie
 - [ ] Zelf aanvallen: XSS, SQL-injectie, padtraversal, brute force — en
       vastleggen wat er gebeurt (zie `docs/SECURITY.md`)
-- [ ] Logging van inlogpogingen, zodat ik iets te analyseren heb
+- [x] Logging van inlogpogingen, zodat ik iets te analyseren heb
