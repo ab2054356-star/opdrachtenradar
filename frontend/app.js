@@ -12,7 +12,7 @@ var T = {
     allevakken:"Alle vakken", allestatus:"Alle statussen", zoek:"Zoeken…",
     nieuw:"+ Nieuwe opdracht", opslaan:"Opslaan", annuleren:"Annuleren",
     lbTitel:"Titel", lbVak:"Vak", lbCode:"Opdrachtcode", lbDeadline:"Inleverdatum",
-    lbPeriode:"Periode", lbStatus:"Status",
+    lbPeriode:"Periode", lbStatus:"Status", lbCijfer:"Cijfer",
     st:{todo:"Te doen",bezig:"Bezig",ingeleverd:"Ingeleverd",klaar:"Afgerond"},
     groups:{late:"Te laat",week:"Deze week",later:"Later",geen:"Zonder datum",done:"Afgerond"},
     leeg:"Nog geen opdrachten. Voeg er één toe of plak je lijst bij Importeren.",
@@ -42,6 +42,7 @@ var T = {
     rapportBtn:"Rapport downloaden", rapportLeeg:"Nog niets ingeleverd of afgerond.",
     rapportTitel:"Voortgangsrapport", rapportOnder:"ICT N3+N4 · klas C · 2026-2027 · specialisatie Cyberbeveiliging",
     rapportOk:"Opgeslagen.", rapportNee:"Downloaden lukt hier niet — kopieer het overzicht hieronder.",
+    rapportGem:"Gemiddeld cijfer",
     geenNotitie:"(geen notitie)"
   },
   ar: {
@@ -53,7 +54,7 @@ var T = {
     allevakken:"كل المواد", allestatus:"كل الحالات", zoek:"بحث…",
     nieuw:"+ واجب جديد", opslaan:"حفظ", annuleren:"إلغاء",
     lbTitel:"العنوان", lbVak:"المادة", lbCode:"رمز الواجب", lbDeadline:"تاريخ التسليم",
-    lbPeriode:"الفترة", lbStatus:"الحالة",
+    lbPeriode:"الفترة", lbStatus:"الحالة", lbCijfer:"الدرجة",
     st:{todo:"لسه",bezig:"شغال عليه",ingeleverd:"سلّمته",klaar:"خلص"},
     groups:{late:"متأخر",week:"هذا الأسبوع",later:"لاحقاً",geen:"بدون تاريخ",done:"منجز"},
     leeg:"ما في واجبات بعد. أضف واحد أو الصق قائمتك في تبويب الاستيراد.",
@@ -83,6 +84,7 @@ var T = {
     rapportBtn:"تحميل التقرير", rapportLeeg:"ما في شيء مُسلَّم أو منجز بعد.",
     rapportTitel:"تقرير التقدّم", rapportOnder:"ICT N3+N4 · صف C · 2026-2027 · تخصص الأمن السيبراني",
     rapportOk:"تم الحفظ.", rapportNee:"التحميل ما اشتغل هنا — انسخ الملخص من تحت.",
+    rapportGem:"معدّل الدرجات",
     geenNotitie:"(بدون ملاحظة)"
   }
 };
@@ -152,6 +154,9 @@ function parseDate(s){ if(!s) return null; var p=/^(\d{4})-(\d{2})-(\d{2})$/.exe
 function daysLeft(s){ var d=parseDate(s); if(!d) return null; return Math.round((d-today())/86400000); }
 function fmtDate(s){ var d=parseDate(s); if(!d) return "—"; var p=function(n){return n<10?"0"+n:""+n;}; return p(d.getDate())+"-"+p(d.getMonth()+1)+"-"+d.getFullYear(); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+/* Cijfer: getal 1..10 met één decimaal, of "" als er niets bruikbaars staat. */
+function schoonCijfer(v){ var n=typeof v==="number"?v:(typeof v==="string"&&v.trim()!==""?parseFloat(v):NaN); return (isFinite(n)&&n>=1&&n<=10)?Math.round(n*10)/10:""; }
+function cijferTekst(v){ var n=schoonCijfer(v); return n===""?"":n.toFixed(1); }
 
 function lsGet(k,f){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):f; }catch(e){ return f; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -348,6 +353,7 @@ function render(){
           (i.status!=="klaar"&&lesTekst(i.vak)?" · "+esc(lesTekst(i.vak)):"")+'</span></span>'+
         '<span class="due">'+due+'</span>'+
         '<span class="acts">'+
+          (cijferTekst(i.cijfer)?'<span class="mini" title="'+esc(L.lbCijfer)+'"><b>'+esc(cijferTekst(i.cijfer))+'</b></span>':'')+
           '<button type="button" class="pill" data-act="status" data-s="'+esc(i.status)+'">'+esc(L.st[i.status]||i.status)+'</button>'+
           '<button type="button" class="chev" data-act="toggle" aria-expanded="'+(open?"true":"false")+'" title="'+esc(L.details)+'" aria-label="'+esc(L.details)+'">'+(open?"&#9650;":"&#9660;")+'</button>'+
           '<button type="button" class="btn ghost" data-act="edit" title="'+esc(L.bewerk)+'" aria-label="'+esc(L.bewerk)+'">&#9998;</button>'+
@@ -409,13 +415,19 @@ function renderRapport(){
   var L=t(), arr=rapportItems(), box=document.getElementById("rapportview");
   if(!arr.length){ box.innerHTML='<div class="empty">'+esc(L.rapportLeeg)+'</div>'; return; }
   var h='<div class="rap"><h3>'+esc(L.rapportTitel)+' — Ashraf Mohammed</h3><p class="who">'+esc(L.rapportOnder)+'</p>';
+  var cijfers=arr.map(function(i){return schoonCijfer(i.cijfer);}).filter(function(n){return n!=="";});
+  if(cijfers.length){
+    var gem=cijfers.reduce(function(s,n){return s+n;},0)/cijfers.length;
+    h+='<p class="who"><b>'+esc(L.rapportGem)+': '+gem.toFixed(1)+'</b></p>';
+  }
   arr.forEach(function(i){
     var st=Array.isArray(i.stappen)?i.stappen:[];
     var klaar=st.filter(function(s){return s&&s.d;}).length;
     h+='<div class="rapitem"><div class="rh"><span class="rc">'+esc(i.code||"—")+'</span>'+
        '<span class="rt">'+esc(i.titel||"")+'</span>'+
        '<span class="rv">'+esc(i.vak||"")+(i.periode?" · "+esc(i.periode):"")+
-       (st.length?" · "+klaar+"/"+st.length:"")+' · '+esc(L.st[i.status])+'</span></div>';
+       (st.length?" · "+klaar+"/"+st.length:"")+' · '+esc(L.st[i.status])+
+       (cijferTekst(i.cijfer)?" · "+esc(L.lbCijfer)+" "+esc(cijferTekst(i.cijfer)):"")+'</span></div>';
     h+='<p>'+esc(i.notitie||L.geenNotitie)+'</p>';
     if(i.link) h+='<a href="'+esc(i.link)+'" target="_blank" rel="noopener">'+esc(i.link)+'</a>';
     h+='</div>';
@@ -424,12 +436,17 @@ function renderRapport(){
 }
 function rapportHtml(){
   var L=t(), arr=rapportItems(), esc2=esc;
+  var cijfers=arr.map(function(i){return schoonCijfer(i.cijfer);}).filter(function(n){return n!=="";});
+  var gemRij=cijfers.length
+    ? '<p class="sub"><b>'+esc(L.rapportGem)+': '+(cijfers.reduce(function(s,n){return s+n;},0)/cijfers.length).toFixed(1)+'</b></p>'
+    : "";
   var rows=arr.map(function(i){
     var st=Array.isArray(i.stappen)?i.stappen:[];
     var klaar=st.filter(function(s){return s&&s.d;}).length;
     return '<div class="it"><div class="hd"><b>'+esc2(i.code||"")+'</b> '+esc2(i.titel||"")+
       '</div><div class="mt">'+esc2(i.vak||"")+(i.periode?" · "+esc2(i.periode):"")+
-      (st.length?" · "+klaar+"/"+st.length+" stappen":"")+' · '+esc2(L.st[i.status])+'</div>'+
+      (st.length?" · "+klaar+"/"+st.length+" stappen":"")+' · '+esc2(L.st[i.status])+
+      (cijferTekst(i.cijfer)?" · "+esc2(L.lbCijfer)+" "+esc2(cijferTekst(i.cijfer)):"")+'</div>'+
       '<p>'+esc2(i.notitie||"")+'</p>'+
       (i.link?'<a href="'+esc2(i.link)+'">'+esc2(i.link)+'</a>':'')+'</div>';
   }).join("");
@@ -439,7 +456,7 @@ function rapportHtml(){
     '.it{border-top:1px solid #D7DEDB;padding:12px 0}.hd{font-size:14.5px}.hd b{font-family:ui-monospace,monospace;color:#0E6E62;font-weight:500}'+
     '.mt{font-size:12px;color:#7A8B86;margin-top:2px}p{margin:6px 0 0;font-size:13px}a{font-size:11.5px;color:#0E6E62;word-break:break-all}</style></head><body>'+
     '<h1>'+esc(L.rapportTitel)+' — Ashraf Mohammed</h1><p class="sub">'+esc(L.rapportOnder)+' · '+fmtDate(toISO(today()))+'</p>'+
-    rows+'</body></html>';
+    gemRij+rows+'</body></html>';
 }
 
 function applyLang(){
@@ -477,6 +494,7 @@ function applyLang(){
   document.getElementById("lb-deadline").textContent=L.lbDeadline;
   document.getElementById("lb-periode").textContent=L.lbPeriode;
   document.getElementById("lb-status").textContent=L.lbStatus;
+  document.getElementById("lb-cijfer").textContent=L.lbCijfer;
   document.getElementById("q1").textContent=L.qMorgen;
   document.getElementById("q7").textContent=L.qWeek;
   document.getElementById("q14").textContent=L.qTwee;
@@ -486,10 +504,6 @@ function applyLang(){
   document.getElementById("importbox").placeholder=L.importph;
   document.getElementById("lang-ar").setAttribute("aria-pressed", lang==="ar"?"true":"false");
   document.getElementById("lang-nl").setAttribute("aria-pressed", lang==="nl"?"true":"false");
-  document.getElementById("login-sub").textContent=L.loginSub;
-  document.getElementById("lb-gebruiker").textContent=L.gebruiker;
-  document.getElementById("lb-wachtwoord").textContent=L.wachtwoord;
-  document.getElementById("login-knop").textContent=L.inloggen;
   document.getElementById("btn-uit").textContent=L.uitloggen;
   setSync(online);
   render(); renderSpec(); renderRooster(); renderRapport();
@@ -565,6 +579,7 @@ function openForm(it){
   document.getElementById("i-deadline").value = it? (it.deadline||"") : "";
   document.getElementById("i-periode").value = it? (it.periode||"") : "";
   document.getElementById("i-status").value = it? (it.status||"todo") : "todo";
+  document.getElementById("i-cijfer").value = it? (it.cijfer||"") : "";
   document.getElementById("formerr").textContent="";
   document.getElementById("formcard").hidden=false;
   document.getElementById("i-titel").focus();
@@ -588,7 +603,8 @@ document.getElementById("btn-save").addEventListener("click",function(){
     code: document.getElementById("i-code").value.trim(),
     deadline: document.getElementById("i-deadline").value,
     periode: document.getElementById("i-periode").value.trim(),
-    status: document.getElementById("i-status").value||"todo"
+    status: document.getElementById("i-status").value||"todo",
+    cijfer: schoonCijfer(document.getElementById("i-cijfer").value)
   });
   saveItem(it);
   document.getElementById("formcard").hidden=true; editId=null;
@@ -678,8 +694,10 @@ document.getElementById("btn-import").addEventListener("click",function(){
 });
 
 /* ---------------- boot ---------------- */
-function toonLogin(){ document.getElementById("loginscherm").hidden=false; document.getElementById("app").hidden=true; }
-function toonApp(){ document.getElementById("loginscherm").hidden=true; document.getElementById("app").hidden=false; }
+/* Inloggen heeft nu een eigen pagina. Niet ingelogd? Dan sturen we de browser
+   daarheen; deze pagina toont nooit meer twee schermen tegelijk. */
+function toonLogin(){ location.replace("/login.html"); }
+function toonApp(){ var a=document.getElementById("app"); if(a) a.hidden=false; }
 
 function laadState(){
   return api("GET","/api/state").then(function(st){
@@ -691,25 +709,9 @@ function laadState(){
   });
 }
 
-document.getElementById("loginform").addEventListener("submit",function(e){
-  e.preventDefault();
-  var fout=document.getElementById("login-fout"); fout.textContent="";
-  fetch("/api/login",{
-    method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin",
-    body:JSON.stringify({
-      gebruiker:document.getElementById("login-gebruiker").value,
-      wachtwoord:document.getElementById("login-wachtwoord").value
-    })
-  }).then(function(r){
-    if(!r.ok) throw new Error("login");
-    document.getElementById("login-wachtwoord").value="";
-    return laadState();
-  }).catch(function(){ fout.textContent=t().loginFout; });
-});
-
 document.getElementById("btn-uit").addEventListener("click",function(){
   fetch("/api/logout",{method:"POST",credentials:"same-origin"}).finally(function(){
-    online=false; toonLogin();
+    online=false; location.replace("/login.html");
   });
 });
 

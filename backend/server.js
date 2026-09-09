@@ -78,6 +78,14 @@ function schoneOpdracht(b) {
   const stappen = Array.isArray(b.stappen)
     ? b.stappen.slice(0, 50).map((s) => ({ t: tekst(s && s.t, 200), d: !!(s && s.d) }))
     : [];
+  // Cijfer: alleen overnemen als het echt een getal 1..10 is. De browser mag
+  // een string sturen ("7.5"), maar niets anders vertrouwen we. Eén decimaal.
+  const cijferGetal = typeof b.cijfer === "number"
+    ? b.cijfer
+    : (typeof b.cijfer === "string" && b.cijfer.trim() !== "" ? Number(b.cijfer) : NaN);
+  const cijfer = (Number.isFinite(cijferGetal) && cijferGetal >= 1 && cijferGetal <= 10)
+    ? Math.round(cijferGetal * 10) / 10
+    : "";
   return {
     titel: tekst(b.titel, 300),
     vak: tekst(b.vak, 100),
@@ -85,6 +93,7 @@ function schoneOpdracht(b) {
     deadline: /^\d{4}-\d{2}-\d{2}$/.test(b.deadline) ? b.deadline : "",
     periode: tekst(b.periode, 10),
     status: status.includes(b.status) ? b.status : "todo",
+    cijfer,
     link: /^https?:\/\//i.test(b.link || "") ? tekst(b.link, 500) : "",
     notitie: tekst(b.notitie, 2000),
     stappen

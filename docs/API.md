@@ -25,6 +25,7 @@ Zonder cookie: `401`.
   "deadline": "2026-09-22",
   "periode": "P1",
   "status": "todo",
+  "cijfer": 7.5,
   "link": "https://github.com/ab2054356-star/opdrachtenradar",
   "notitie": "Volumes aangemaakt, shares nog niet getest.",
   "stappen": [{ "t": "HDD bij maken", "d": true }]
@@ -32,4 +33,6 @@ Zonder cookie: `401`.
 ```
 
 `status` is `todo`, `bezig`, `ingeleverd` of `klaar`. `deadline` is `JJJJ-MM-DD`
-of leeg. Onbekende velden worden door de server weggegooid.
+of leeg. `cijfer` is een getal van 1 t/m 10 met één decimaal, of `""` als het
+ontbreekt of buiten bereik ligt. Onbekende velden worden door de server
+weggegooid.
