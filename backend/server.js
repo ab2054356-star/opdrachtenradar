@@ -43,8 +43,12 @@ const MIME = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
   ".ico": "image/x-icon",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
+  // Zonder dit exacte type negeert de browser het manifest en verschijnt de
+  // installatieknop niet.
+  ".webmanifest": "application/manifest+json; charset=utf-8"
 };
 
 /* ---------------- helpers ---------------- */
@@ -134,7 +138,14 @@ function stuurBestand(res, urlPad) {
   }
   fs.readFile(doel, (err, data) => {
     if (err) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("Niet gevonden"); return; }
-    res.writeHead(200, { "Content-Type": MIME[path.extname(doel)] || "application/octet-stream" });
+    const kop = { "Content-Type": MIME[path.extname(doel)] || "application/octet-stream" };
+    // De service worker zelf nooit laten cachen. Anders blijft een oude versie
+    // hangen en krijg je updates van de app nooit meer te zien.
+    if (naam === "sw.js") {
+      kop["Cache-Control"] = "no-cache";
+      kop["Service-Worker-Allowed"] = "/";
+    }
+    res.writeHead(200, kop);
     res.end(data);
   });
 }

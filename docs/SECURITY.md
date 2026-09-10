@@ -130,3 +130,43 @@ de lijn, ander resultaat.
 
 Wat dit **niet** oplost: iemand met toegang tot de machine zelf, of tot mijn
 browser. TLS beschermt de weg ertussenin, niet de uiteinden.
+
+## 10. De service worker (PWA)
+
+`frontend/sw.js` maakt van de site een installeerbare app. Een service worker is
+een script dat tussen de pagina en het netwerk gaat zitten en elk verzoek mag
+beantwoorden. Dat is precies waarom er twee harde regels in staan.
+
+**Regel 1 — alleen de schil in de cache.** html, css, js en iconen. Die zijn voor
+iedereen gelijk en bevatten niets persoonlijks.
+
+**Regel 2 — `/api/` gaat er nooit in.** Daar zitten mijn opdrachten en mijn
+sessie. Een cache is een gewoon bestand op schijf: wie daarbij kan, kan bij alles
+wat erin staat — ook nadat ik ben uitgelogd, want uitloggen wist de cache niet.
+De handler stopt daarom meteen bij elk pad dat met `/api/` begint, ook als
+fallback bij offline. Offline werken doet de app al met `localStorage` in
+`app.js`.
+
+**Alleen in een secure context.** De registratie in `app.js` staat achter
+`window.isSecureContext`, en de browser dwingt dat zelf ook af: https of
+`127.0.0.1`. Logisch — een aanvaller die één keer een script op de lijn kan
+vervangen, zet daarmee een service worker neer die bij élk volgend bezoek
+meedraait. Dat overleeft een herstart van de browser.
+
+**Cache-Control op sw.js.** De server stuurt `no-cache` mee voor `sw.js`
+(`server.js`, `stuurBestand`). Zonder dat blijft een oude service worker in de
+browser hangen en krijg ik een fout hierin nooit meer weg.
+
+**Testen:** DevTools → Application → Cache Storage. Klap `radar-schil-v1` open:
+daar horen alleen `/`, `/index.html`, `/style.css`, `/app.js`, `/login.js`,
+`/login.html`, de iconen en het manifest in te staan. Zie je er `/api/state`
+tussen staan, dan is regel 2 stuk.
+
+## 11. Geen `style=""` meer in de HTML
+
+De CSP staat `style-src 'self'` toe zonder `unsafe-inline`. Dat blokkeert niet
+alleen `<style>`-blokken maar ook losse `style=""`-attributen. Er stonden er nog
+drie in `index.html` en `app.js`; die zijn vervangen door klassen
+(`.formfoot.plat`, `.stap-leeg`, en `width:0` op `.bar i`). De console is nu
+schoon — en dat is het punt: als er altijd al CSP-meldingen in de console staan,
+zie je de melding die er wél toe doet niet meer staan.

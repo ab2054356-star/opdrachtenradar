@@ -250,7 +250,7 @@ function inDays(n){ var d=today(); d.setDate(d.getDate()+n); return toISO(d); }
 function detailHtml(i,st){
   var L=t(), h='<div class="detail">';
   h+='<div><h4>'+esc(L.stappen)+'</h4><div class="steps">';
-  if(!st.length) h+='<div class="v" style="font-size:12.5px;color:var(--ink-3)">'+esc(L.geenStappen)+'</div>';
+  if(!st.length) h+='<div class="v stap-leeg">'+esc(L.geenStappen)+'</div>';
   st.forEach(function(s,idx){
     h+='<label class="step'+(s.d?" on":"")+'"><input type="checkbox" data-step="'+idx+'"'+(s.d?" checked":"")+'>'+
        '<span>'+esc(s.t)+'</span><button type="button" data-act="delstep" data-i="'+idx+'" aria-label="x">&times;</button></label>';
@@ -736,5 +736,18 @@ applyLang();
 laadState().catch(function(err){
   if(String(err && err.message)!=="auth"){ online=false; toonApp(); applyLang(); }
 });
+
+/* PWA: de service worker aanmelden. Alleen in een veilige context (https of
+   127.0.0.1) — de browser weigert het anders, en terecht: een service worker
+   zit tussen de pagina en het netwerk, dus die mag niet over een lijn komen
+   die iemand onderweg kan aanpassen. Mislukt het, dan werkt de site gewoon
+   verder als website; alleen "installeren" valt dan weg. */
+if("serviceWorker" in navigator && window.isSecureContext){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("/sw.js", {scope:"/"}).catch(function(e){
+      console.warn("service worker niet geregistreerd:", e && e.message);
+    });
+  });
+}
 
 })();

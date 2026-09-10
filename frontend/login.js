@@ -103,4 +103,14 @@ document.getElementById("loginform").addEventListener("submit", function(e){
 
 zetTaal(lang);
 document.getElementById("login-gebruiker").focus();
+
+/* PWA: dezelfde registratie als in app.js, zodat de app ook installeerbaar is
+   wanneer je op het inlogscherm binnenkomt. Zie de toelichting daar. */
+if("serviceWorker" in navigator && window.isSecureContext){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("/sw.js", {scope:"/"}).catch(function(e){
+      console.warn("service worker niet geregistreerd:", e && e.message);
+    });
+  });
+}
 })();

@@ -67,6 +67,47 @@ Wil je dat de server meestart met Windows: maak een snelkoppeling naar
 De database komt in `backend/data/` te staan. Die map staat in `.gitignore`:
 mijn opdrachten en mijn wachtwoord-hash horen niet in een publieke repo.
 
+## Installeren als app
+
+De radar is een **PWA** (progressive web app): dezelfde code draait als website
+én als geïnstalleerde app, met een eigen icoon en een eigen venster zonder
+adresbalk.
+
+Start de server, open `http://127.0.0.1:3000` en klik in de adresbalk op het
+installatie-icoontje (of menu → *Apps* → *Deze site installeren*). Daarna staat
+de radar in het Startmenu.
+
+Wat het toevoegt:
+
+| Bestand | Wat het doet |
+|---|---|
+| `frontend/manifest.webmanifest` | Naam, kleuren, iconen — zonder dit geen installatieknop |
+| `frontend/sw.js` | Service worker: cachet de schil, zodat de app ook zonder netwerk opent |
+| `frontend/icon.svg` + de PNG's | Eén vectorbron; de PNG's zijn daaruit gerenderd voor Android en iOS |
+
+De service worker cachet **alleen** html, css, js en iconen. Alles onder `/api/`
+gaat er bewust langs — zie `docs/SECURITY.md` §10.
+
+> Installeren werkt alleen in een *secure context*: `https://` of
+> `127.0.0.1`/`localhost`. Op `http://192.168.x.x` weigert de browser de service
+> worker, en terecht: die zit tussen de pagina en het netwerk, dus zoiets mag je
+> niet over een lijn halen die onderweg aan te passen is.
+
+### Ook op mijn telefoon
+
+Dat vraagt twee dingen, in deze volgorde:
+
+1. **De server op het netwerk zetten:** `set HOST=0.0.0.0` vóór het starten.
+   Vanaf dat moment luistert hij op elk netwerk waar de laptop op zit — ook op
+   het schoolnetwerk. Alleen doen op mijn eigen wifi.
+2. **HTTPS met een certificaat dat de telefoon vertrouwt.** Het zelfondertekende
+   certificaat uit §9 is niet genoeg: de telefoon weigert dan de service worker.
+   Dat betekent een eigen CA die ik op de telefoon installeer, of een echt
+   certificaat via een domeinnaam.
+
+Zolang stap 2 niet af is, blijft de app op de telefoon een gewone website in de
+browser — bruikbaar, maar niet installeerbaar.
+
 ## Testen
 
 ```bash
@@ -109,6 +150,9 @@ frontend/
   login.html        inlogpagina, laadt app.js bewust niet
   login.js          het inlogscript (apart bestand: de CSP staat geen inline script toe)
   style.css         opmaak, licht en donker thema
+  manifest.webmanifest  maakt de site installeerbaar als app
+  sw.js             service worker: schil cachen, /api nooit
+  icon.svg          bron voor alle iconen (icon-*.png zijn hieruit gerenderd)
 docs/
   SECURITY.md       welke aanvallen zijn afgedekt en hoe
   API.md            beschrijving van de endpoints
@@ -117,6 +161,9 @@ docs/
 ## Volgende stappen
 
 - [ ] Uitrollen op een Windows Server-VM in VMware (Server en Cloud)
+- [x] Installeerbaar als app (PWA), met offline start
+- [ ] Een eigen CA opzetten en op mijn telefoon vertrouwen, zodat de app ook
+      daar installeerbaar is
 - [x] HTTPS met een eigen certificaat, en `Secure` op de sessiecookie
 - [ ] Zelf aanvallen: XSS, SQL-injectie, padtraversal, brute force — en
       vastleggen wat er gebeurt (zie `docs/SECURITY.md`)
