@@ -522,8 +522,17 @@ tabs.forEach(function(p){
     tabs.forEach(function(q){
       var sel=q[0]===p[0];
       document.getElementById(q[0]).setAttribute("aria-selected",sel?"true":"false");
-      document.getElementById(q[1]).hidden=!sel;
+      var paneel=document.getElementById(q[1]);
+      paneel.hidden=!sel;
+      if(sel){
+        // opnieuw starten: de animatie speelt ook af als je hetzelfde tabblad kiest
+        paneel.style.animation="none";
+        void paneel.offsetWidth;
+        paneel.style.animation="";
+      }
     });
+    var knop=document.getElementById(p[0]);
+    knop.classList.remove("tik"); void knop.offsetWidth; knop.classList.add("tik");
     if(p[0]==="tab-rapport") renderRapport();
     if(p[0]==="tab-rooster") renderRooster();
   });

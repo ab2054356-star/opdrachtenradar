@@ -65,14 +65,40 @@ document.getElementById("loginform").addEventListener("submit", function(e){
   });
 });
 
-/* Het wachtertje: poten voor de ogen zodra je in het wachtwoordveld staat. */
+/* De figuur naast de kaart heeft drie standen:
+     - gewoon staan
+     - na 5 seconden niets doen: op zijn horloge kijken (body.wacht)
+     - zodra je in het wachtwoordveld staat: hand voor de ogen (body.bedekt)  */
 (function(){
   var ww = document.getElementById("login-wachtwoord");
   if (!ww) return;
-  var dicht = function(){ document.body.classList.add("bedekt"); };
-  var open  = function(){ document.body.classList.remove("bedekt"); };
-  ww.addEventListener("focus", dicht);
-  ww.addEventListener("blur", open);
+  var klok = null;
+  var body = document.body;
+
+  function startWachten(){
+    clearTimeout(klok);
+    body.classList.remove("wacht");
+    klok = setTimeout(function(){ body.classList.add("wacht"); }, 5000);
+  }
+
+  ww.addEventListener("focus", function(){
+    clearTimeout(klok);
+    body.classList.remove("wacht");
+    body.classList.add("bedekt");
+  });
+  ww.addEventListener("blur", function(){
+    body.classList.remove("bedekt");
+    startWachten();
+  });
+
+  // Elke aanraking betekent: hij hoeft nog niet ongeduldig te worden.
+  ["mousemove","keydown","click","touchstart"].forEach(function(g){
+    document.addEventListener(g, function(){
+      if (!body.classList.contains("bedekt")) startWachten();
+    }, {passive:true});
+  });
+
+  startWachten();
 })();
 
 zetTaal(lang);
